@@ -3,14 +3,14 @@
 (print "Main file eval'd")
 
 (defparameter directions-base-url "https://maps.googleapis.com/maps/api/directions/json")
-(defparameter test-destination "85+10th+Ave,+New+York,+NY+10011")
-(defparameter test-origin "75+9th+Ave+New+York,+NY")
+(defparameter directions-test-destination "85+10th+Ave,+New+York,+NY+10011")
+(defparameter directions-test-origin "75+9th+Ave+New+York,+NY")
 
 (defun directions-url ()
   (format nil "~a?origin=~a&destination=~a&key=~A"
           directions-base-url
-          test-origin
-          test-destination
+          directions-test-origin
+          directions-test-destination
           skippy::directions-key))
 
 (defun directions-response ()
@@ -45,3 +45,38 @@
 ;; 2: {latitude: 40.74219, longitude: -74.00622}
 ;; 3: {latitude: 40.74282, longitude: -74.00772}
 ;; 4: {latitude: 40.74305, longitude: -74.00756}
+
+(defparameter streetview-base-url "https://maps.googleapis.com/maps/api/streetview")
+(defparameter streetview-latlong "40.42620,-86.91666")
+(defparameter streetview-size "600x600")
+(defparameter streetview-heading "165")
+
+(defun image-url ()
+  (format nil "~a?size=~a&location=~a&heading=~a&key=~a"
+          streetview-base-url
+          streetview-size
+          streetview-latlong
+          streetview-heading
+          skippy::streetview-key))
+
+;; 0010 2
+;; 0110 6
+(logand 2 6)
+(logor 2 4)
+
+;; [ ] convert polyline to lat long pairs
+;; [ ] able to save street view images
+;; [ ] able to combine to a gif
+;; [ ] able to save gif to s3
+;; [ ] add database storing s3 urls
+
+(defun get-dirname ()
+  "example /40.42620,-86.91666,165/"
+  (format nil "~a,~a" streetview-latlong streetview-heading))
+
+(defun get-directory-path ()
+  "directory tmp/ is created if not already there"
+  (format nil "./tmp/~a/filename.png" (get-dirname)))
+
+(defun download-image (image-url save-path)
+  (trivial-download:download (image-url) save-path))
