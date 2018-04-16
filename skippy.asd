@@ -9,6 +9,7 @@
   :depends-on (#:hunchentoot
                #:trivial-download
                #:drakma
+               #:yason
                #:cl-json)
   :components ((:file "package")
                (:file "skippy")))
