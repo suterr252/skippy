@@ -80,3 +80,7 @@
 
 (defun download-image (image-url save-path)
   (trivial-download:download (image-url) save-path))
+
+;; #'uiop:run-program documentation, which can execute shell commands
+;; https://gitlab.common-lisp.net/asdf/asdf/blob/master/uiop/run-program.lisp#L539
+(uiop:run-program "convert -loop 0 -delay 25 ~/Desktop/lispshell/0*.png ~/Desktop/lispshell/out.gif")
