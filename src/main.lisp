@@ -1,43 +1,27 @@
-;;; main.lisp
+;;;; src/main.lisp
 
-(print "Main file eval'd")
+(print "src/main.lisp eval'd")
 
 (defparameter directions-base-url "https://maps.googleapis.com/maps/api/directions/json")
 (defparameter directions-test-destination "85+10th+Ave,+New+York,+NY+10011")
 (defparameter directions-test-origin "75+9th+Ave+New+York,+NY")
 
-(defun directions-url ()
-  (format nil "~a?origin=~a&destination=~a&key=~A"
-          directions-base-url
-          directions-test-origin
-          directions-test-destination
-          skippy::directions-key))
+(defparameter directions-api-response
+  (get-directions directions-base-url
+                  directions-test-origin
+                  directions-test-destination))
 
-(defun directions-response ()
-  (let ((stream (drakma:http-request (directions-url)
-                                     :want-stream t)))
-    (setf (flexi-streams:flexi-stream-external-format stream) :utf-8)
-    (yason:parse stream :object-as :plist)))
+(defparameter routes (find-val-from directions-api-response "routes"))
 
-(defun find-val-from (list key)
-  ;; validate key is string?
-  (if (eq list nil)
-      (return-from find-val-from))
-  (let ((name (car list))
-        (obj (car (cdr list)))
-        (rest (cdr (cdr list))))
-    (if (string= name key)
-        obj
-        (find-val-from rest key))))
-
-(defparameter res (directions-response))
-(defparameter routes (find-val-from (directions-response) "routes"))
-
-(car routes);; individual route obj
+;; TODO: What scenario gives multiple routes?
 (defparameter route (car routes))
+(defparameter encoded-polyline
+  (car (cdr (find-val-from route "overview_polyline"))))
 
-(car (find-val-from route "overview_polyline")) ;; "points"
-(car (cdr (find-val-from route "overview_polyline")));; encoded string
+
+
+
+
 
 (defparameter polyline "}ktwF|`ubMp@b@iBxF}BjHm@_@")
 ;; 0: {latitude: 40.74191, longitude: -74.00479}
@@ -75,12 +59,19 @@
   (format nil "~a,~a" streetview-latlong streetview-heading))
 
 (defun get-directory-path ()
-  "directory tmp/ is created if not already there"
+  "creates directory `tmp/' if not already present"
   (format nil "./tmp/~a/filename.png" (get-dirname)))
 
 (defun download-image (image-url save-path)
   (trivial-download:download (image-url) save-path))
 
-;; #'uiop:run-program documentation, which can execute shell commands
-;; https://gitlab.common-lisp.net/asdf/asdf/blob/master/uiop/run-program.lisp#L539
-(uiop:run-program "convert -loop 0 -delay 25 ~/Desktop/lispshell/0*.png ~/Desktop/lispshell/out.gif")
+(defparameter input-files "~/Desktop/lispshell/*.png")
+(defparameter output-file "~/Desktop/lispshell/out.gif")
+
+(defun make-gif (input-files output-file)
+  "`#'uiop:run-program' executes shell commands, see:
+   https://gitlab.common-lisp.net/asdf/asdf/blob/master/uiop/run-program.lisp#L539"
+  (uiop:run-program (image-magick-shell-cmd input-files output-file)))
+
+(defun image-magick-shell-cmd (input-files output-file)
+  (format nil "convert -loop 0 -delay 25 ~a ~a" input-files output-file))

@@ -12,4 +12,7 @@
                #:yason
                #:cl-json)
   :components ((:file "package")
-               (:file "skippy")))
+               (:file "skippy")
+               (:file "src/directions")
+               (:file "src/polyline-decoder")
+               (:file "src/street-views")))
