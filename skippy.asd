@@ -10,6 +10,7 @@
                #:trivial-download
                #:drakma
                #:yason
+               #:cl-utilities
                #:cl-json)
   :components ((:file "package")
                (:file "skippy")

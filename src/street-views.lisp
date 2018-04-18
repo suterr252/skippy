@@ -13,3 +13,17 @@
           streetview-latlong
           streetview-heading
           skippy::streetview-key))
+
+(defun get-save-path (name &optional (extension "png"))
+  (format nil "~a/quicklisp/local-projects/skippy/tmp/~a.~a" "~" name extension))
+
+(defun download-image (image-url save-path)
+  (trivial-download:download image-url save-path))
+
+(defun make-gif (input-files output-file)
+  "`#'uiop:run-program' executes shell commands, see:
+   https://gitlab.common-lisp.net/asdf/asdf/blob/master/uiop/run-program.lisp#L539"
+  (uiop:run-program (image-magick-shell-cmd input-files output-file)))
+
+(defun image-magick-shell-cmd (input-files output-file)
+  (format nil "convert -loop 0 -delay 50 ~a ~a" input-files output-file))

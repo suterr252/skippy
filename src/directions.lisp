@@ -2,12 +2,17 @@
 
 (print "src/directions.lisp eval'd")
 
+(defparameter directions-base-url "https://maps.googleapis.com/maps/api/directions/json")
+
+(defun replace-spaces-with-pluses (string)
+  (format nil "~{~A~^+~}" (cl-utilities:split-sequence #\Space string)))
+
+(defun get-directions-api-response (origin destination)
+  (get-directions directions-base-url origin destination))
+
 (defun directions-url (base origin destination)
   (format nil "~a?origin=~a&destination=~a&key=~A"
-          base
-          origin
-          destination
-          skippy::directions-key))
+          base origin destination skippy::directions-key))
 
 (defun get-directions (base origin destination)
   (let ((stream (drakma:http-request (directions-url base origin destination)
