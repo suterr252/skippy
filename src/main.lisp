@@ -2,6 +2,12 @@
 
 (print "src/main.lisp eval'd")
 
+(defun get-split-left-side (list count)
+  (subseq list 0 count))
+
+(defun get-split-right-side (list count)
+  (nthcdr count list))
+
 (defun list-of-latlng-ints-to-strings (list)
   (loop for latlng in list
         collect (format nil "~a,~a" (car latlng) (cadr latlng))))
@@ -71,9 +77,33 @@
     (print "### ARE WE HERE ###")
     (terpri)(terpri)(terpri)
 
+    (defparameter divide-index (floor (/ (length urls-and-paths) 2)))
+    (defparameter new-list ())
+    (setf new-list (append new-list
+                           (list (get-split-left-side
+                                  urls-and-paths divide-index))))
+    (setf new-list (append new-list
+                           (list (get-split-right-side
+                                  urls-and-paths divide-index))))
+
     ;; single threaded
-    (loop for data in urls-and-paths do
-      (download-image (car data) (cadr data)))
+    ;; (loop for data in urls-and-paths do
+    ;;   (download-image (car data) (cadr data)))
+
+    (defparameter thruds
+      (loop for half in new-list
+            collect
+            (sb-thread:make-thread
+             #'(lambda (standard-output half)
+                 (let ((*standard-output* standard-output))
+                   (loop for data in half do
+                     (download-image (car data) (cadr data)))
+                   ))
+             :arguments (list *standard-output* half))))
+
+    (loop for thr in thruds do
+      (sb-thread:join-thread thr))
+    (print "##### Finished now after waiting???? ######")
 
     ;; thread pool
     ;; (defparameter *threadpool* (cl-threadpool:make-threadpool 50))
@@ -87,23 +117,15 @@
     ;; (make-gif (get-save-path "*") (get-save-path "out" "gif"))
     ))
 
-(time
- (main
+(time (main
   "Lawson Computer Science Building, 305 N University St, West Lafayette, IN 47907"
   "John W. Hicks Undergraduate Library, 504 W State St, West Lafayette, IN 47907"))
 
-;; (Single Threaded )Evaluation took:
-;; 13.235 seconds of real time
-
-;; (Pooled threads [5])Evaluation took:
-;; 12.348 seconds of real time
-
-;; (Pooled threads [10])Evaluation took:
-;; 9.877 seconds of real time
-
-;; (Pooled threads [50]) Evaluation took:
-;; 23.023 seconds of real time
-
+;; (Single Threaded )Evaluation took: 13.235 seconds of real time
+;; (Pooled threads [5])Evaluation took: 12.348 seconds of real time
+;; (Pooled threads [10])Evaluation took: 9.877 seconds of real time
+;; (Pooled threads [50]) Evaluation took: 23.023 seconds of real tim
+;; (basic use of 2 threads) Evaluation took:  4.014 seconds of real time
 
 
 ;; routes.len == 1
@@ -153,26 +175,19 @@
 ;; k~seFrzjjVf@G
 
 
-(main
- "900 John R Wooden Dr, West Lafayette, IN 47907"
- "2400 Yeager Rd, West Lafayette, IN 47906")
 
-(time
- (main
+
+(time (main
   "2400 Yeager Rd, West Lafayette, IN 47906"
   "900 John R Wooden Dr, West Lafayette, IN 47907"))
 
-;; (Single threaded) Evaluation took:
-;; 75.316 seconds of real time
+;; (Single threaded) Evaluation took: 75.316 seconds of real time
+;; (Pooled threads [5]) Evaluation took: 61.992 seconds of real time
+;; (Pooled threads [10]) Evaluation took: 65.041 seconds of real time
+;; (Pooled threads [50]) Evaluation took: 127.582 seconds of real time
+;; (basic use of 2 threads) Evaluation took: 37.509 seconds of real time
 
-;; (Pooled threads [5]) Evaluation took:
-;; 61.992 seconds of real time
 
-;; (Pooled threads [10]) Evaluation took:
-;; 65.041 seconds of real time
-
-;; (Pooled threads [50]) Evaluation took:
-;; 127.582 seconds of real time
 
 
 ;; [ ] able to save gif to s3
@@ -190,3 +205,13 @@
 ;;    *threadpool*
 ;;    (sleep data))))
 ;; 15.016 seconds...
+
+(defun split (list count)
+  (values (subseq list 0 count) (nthcdr count list)))
+
+(multiple-value-bind (q r) (split '(a b c d e f g) 3)
+  (print "### Q ###")
+  (print q)
+  (print "### R ###")
+  (print r)
+  )
