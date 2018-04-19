@@ -2,11 +2,15 @@
 
 (print "src/main.lisp eval'd")
 
-(defun get-split-left-side (list count)
-  (subseq list 0 count))
+(defun range (max &key (min 0) (step 1))
+  (loop for n from min below max by step
+        collect n))
 
-(defun get-split-right-side (list count)
-  (nthcdr count list))
+(defun partition-in (num data)
+  (let ((jump (floor (/ (length data) num))))
+    (loop for (beg end) on (range num)
+          collect (subseq data (* jump beg)
+                          (if end (* jump end) nil)))))
 
 (defun list-of-latlng-ints-to-strings (list)
   (loop for latlng in list
@@ -15,15 +19,15 @@
 (defun combine-idx-and-loc (idx other)
   (format nil "~a,~a" idx other))
 
-(defun threaded-image-download (arg1 arg2)
-  (sb-thread:make-thread
-   #'(lambda (standard-output arg1 arg2)
-       (let ((*standard-output* standard-output))
-         ;;(trivial-download:download url (filename num))
-         (download-image arg1 arg2)
-         (print "#### Finished a download!!!!  ####")
-         ))
-   :arguments (list *standard-output* arg1 arg2)))
+(defun threaded-get-request (list)
+  (loop for chunk in list
+        collect
+        (sb-thread:make-thread
+         #'(lambda (standard-output chunk)
+             (let ((*standard-output* standard-output))
+               (loop for data in chunk do
+                 (download-image (car data) (cadr data)))))
+         :arguments (list *standard-output* chunk))))
 
 (defun main (origin destination)
   (format t "beginning route from ~a to ~a~%" origin destination)
@@ -56,14 +60,11 @@
       (loop for list in lists-of-latlngs
             collect (list-of-latlng-ints-to-strings list)))
     ;; TODO: Dynamic headings (camera angle)
-    ;; TODO: Should instead build a flat list of threads to make
-
     (defparameter urls-and-paths ())
     (let ((file-count 0))
       (defparameter list-of-threads
         (loop for list in lists-of-coordinate-strings do
           (loop for latlong in list do
-
             (let ((target-url (image-url latlong "165"))
                   (save-path (get-save-path
                               (combine-idx-and-loc
@@ -71,51 +72,15 @@
               (setf urls-and-paths
                     (append urls-and-paths (list (list target-url save-path))))
               (setf file-count (+ 1 file-count)))))))
-    ;; TODO: Verify list exists and is good! then can:
-    ;; (threaded-image-download target-url save-path)
-    (terpri)(terpri)(terpri)
-    (print "### ARE WE HERE ###")
-    (terpri)(terpri)(terpri)
 
-    (defparameter divide-index (floor (/ (length urls-and-paths) 2)))
-    (defparameter new-list ())
-    (setf new-list (append new-list
-                           (list (get-split-left-side
-                                  urls-and-paths divide-index))))
-    (setf new-list (append new-list
-                           (list (get-split-right-side
-                                  urls-and-paths divide-index))))
+    (let* ((partitioned-list (partition-in 4 urls-and-paths))
+           (threads (threaded-get-requests partitioned-list)))
+      (loop for thread in threads
+            do (sb-thread:join-thread thread)))
 
-    ;; single threaded
-    ;; (loop for data in urls-and-paths do
-    ;;   (download-image (car data) (cadr data)))
+    (print "##### Creating GIF now. ######")
+    (make-gif (get-save-path "*") (get-save-path "out" "gif"))))
 
-    (defparameter thruds
-      (loop for half in new-list
-            collect
-            (sb-thread:make-thread
-             #'(lambda (standard-output half)
-                 (let ((*standard-output* standard-output))
-                   (loop for data in half do
-                     (download-image (car data) (cadr data)))
-                   ))
-             :arguments (list *standard-output* half))))
-
-    (loop for thr in thruds do
-      (sb-thread:join-thread thr))
-    (print "##### Finished now after waiting???? ######")
-
-    ;; thread pool
-    ;; (defparameter *threadpool* (cl-threadpool:make-threadpool 50))
-    ;; (cl-threadpool:start *threadpool*)
-    ;; (loop for data in urls-and-paths do
-    ;;   (cl-threadpool:add-job
-    ;;    *threadpool*
-    ;;    (download-image (car data) (cadr data))))
-
-    ;; TODO: #'sb-thread:join-thread to prevent early calling
-    ;; (make-gif (get-save-path "*") (get-save-path "out" "gif"))
-    ))
 
 (time (main
   "Lawson Computer Science Building, 305 N University St, West Lafayette, IN 47907"
@@ -126,6 +91,8 @@
 ;; (Pooled threads [10])Evaluation took: 9.877 seconds of real time
 ;; (Pooled threads [50]) Evaluation took: 23.023 seconds of real tim
 ;; (basic use of 2 threads) Evaluation took:  4.014 seconds of real time
+;; (basic use of 4 threads) Evaluation took:  4.595 seconds of real time
+
 
 
 ;; routes.len == 1
@@ -186,7 +153,7 @@
 ;; (Pooled threads [10]) Evaluation took: 65.041 seconds of real time
 ;; (Pooled threads [50]) Evaluation took: 127.582 seconds of real time
 ;; (basic use of 2 threads) Evaluation took: 37.509 seconds of real time
-
+;; (basic use of 4 threads) Evaluation took: 20.917 seconds of real time
 
 
 
@@ -205,13 +172,3 @@
 ;;    *threadpool*
 ;;    (sleep data))))
 ;; 15.016 seconds...
-
-(defun split (list count)
-  (values (subseq list 0 count) (nthcdr count list)))
-
-(multiple-value-bind (q r) (split '(a b c d e f g) 3)
-  (print "### Q ###")
-  (print q)
-  (print "### R ###")
-  (print r)
-  )
