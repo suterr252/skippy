@@ -11,6 +11,8 @@
                #:drakma
                #:yason
                #:cl-utilities
+               #:cl-fad
+               #:cl-threadpool
                #:cl-json)
   :components ((:file "package")
                (:file "skippy")

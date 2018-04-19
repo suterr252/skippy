@@ -6,7 +6,7 @@
 (defparameter streetview-size "600x600")
 (defparameter streetview-heading "165")
 
-(defun image-url (streetview-latlong)
+(defun image-url (streetview-latlong streetview-heading)
   (format nil "~a?size=~a&location=~a&heading=~a&key=~a"
           streetview-base-url
           streetview-size

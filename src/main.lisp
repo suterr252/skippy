@@ -6,6 +6,19 @@
   (loop for latlng in list
         collect (format nil "~a,~a" (car latlng) (cadr latlng))))
 
+(defun combine-idx-and-loc (idx other)
+  (format nil "~a,~a" idx other))
+
+(defun threaded-image-download (arg1 arg2)
+  (sb-thread:make-thread
+   #'(lambda (standard-output arg1 arg2)
+       (let ((*standard-output* standard-output))
+         ;;(trivial-download:download url (filename num))
+         (download-image arg1 arg2)
+         (print "#### Finished a download!!!!  ####")
+         ))
+   :arguments (list *standard-output* arg1 arg2)))
+
 (defun main (origin destination)
   (format t "beginning route from ~a to ~a~%" origin destination)
   (let* ((from (replace-spaces-with-pluses origin))
@@ -14,7 +27,9 @@
     (print "#### API Response ####")
     (print directions-api-response)
     (terpri)
-    ;; TODO: Delete contents of tmp/ if exists
+    (cl-fad:delete-directory-and-files
+     "~/quicklisp/local-projects/skippy/tmp/"
+     :if-does-not-exist :ignore)
     (defparameter all-polylines ())
     (let ((routes (find-val-from directions-api-response "routes")))
       (loop for route in routes do
@@ -25,7 +40,6 @@
                 (push (cadr (find-val-from single-step "polyline"))
                       all-polylines)))))))
     (setf all-polylines (reverse all-polylines))
-    ;;(loop for polyline in all-polylines do (print polyline))
     (defparameter lists-of-latlngs
       (loop for polyline in all-polylines
             do (progn (print "#### polyline for step ####")
@@ -36,23 +50,65 @@
       (loop for list in lists-of-latlngs
             collect (list-of-latlng-ints-to-strings list)))
     ;; TODO: Dynamic headings (camera angle)
+    ;; TODO: Should instead build a flat list of threads to make
+
+    (defparameter urls-and-paths ())
     (let ((file-count 0))
-      (loop for list in lists-of-coordinate-strings do
-        (loop for latlong in list do
-          (download-image (image-url latlong)
-                          (get-save-path (combine-idx-and-loc file-count latlong)))
-          (terpri)
-          (format t "Saved image #~a with latlng ~a" file-count latlong)
-          (terpri)
-          (setf file-count (+ 1 file-count)))))
-    (make-gif (get-save-path "*") (get-save-path "out" "gif"))))
+      (defparameter list-of-threads
+        (loop for list in lists-of-coordinate-strings do
+          (loop for latlong in list do
 
-(defun combine-idx-and-loc (idx other)
-  (format nil "~a,~a" idx other))
+            (let ((target-url (image-url latlong "165"))
+                  (save-path (get-save-path
+                              (combine-idx-and-loc
+                               file-count latlong))))
+              (setf urls-and-paths
+                    (append urls-and-paths (list (list target-url save-path))))
+              (setf file-count (+ 1 file-count)))))))
+    ;; TODO: Verify list exists and is good! then can:
+    ;; (threaded-image-download target-url save-path)
+    (terpri)(terpri)(terpri)
+    (print "### ARE WE HERE ###")
+    (terpri)(terpri)(terpri)
 
-(main
- "Lawson Computer Science Building, 305 N University St, West Lafayette, IN 47907"
- "John W. Hicks Undergraduate Library, 504 W State St, West Lafayette, IN 47907")
+    ;; single threaded
+    (loop for data in urls-and-paths do
+      (download-image (car data) (cadr data)))
+
+    ;; thread pool
+    ;; (defparameter *threadpool* (cl-threadpool:make-threadpool 50))
+    ;; (cl-threadpool:start *threadpool*)
+    ;; (loop for data in urls-and-paths do
+    ;;   (cl-threadpool:add-job
+    ;;    *threadpool*
+    ;;    (download-image (car data) (cadr data))))
+
+    ;; TODO: #'sb-thread:join-thread to prevent early calling
+    ;; (make-gif (get-save-path "*") (get-save-path "out" "gif"))
+    ))
+
+(time
+ (main
+  "Lawson Computer Science Building, 305 N University St, West Lafayette, IN 47907"
+  "John W. Hicks Undergraduate Library, 504 W State St, West Lafayette, IN 47907"))
+
+;; (Single Threaded )Evaluation took:
+;; 13.235 seconds of real time
+
+;; (Pooled threads [5])Evaluation took:
+;; 12.348 seconds of real time
+
+;; (Pooled threads [10])Evaluation took:
+;; 9.877 seconds of real time
+
+;; (Pooled threads [50]) Evaluation took:
+;; 23.023 seconds of real time
+
+
+
+;; routes.len == 1
+;; bounds.len == 1
+;; steps.len == 2
 
 ;; Lawson --> N University St & State St
 ;; k`wuFb|nqO`BAlE@B?l@?~C@r@ArCA
@@ -82,9 +138,55 @@
 ;; 20:40.42403,-86.91266
 
 
-routes.len == 1
-bounds.len == 1
-steps.len == 2
+
+
+
+(main
+ "2813 Bush Street San Francisco, CA 94115"
+ "104 Walnut Street San Francisco, CA 94118")
+
+
+;; All the points seemed good!
+;; s_seFjyijVMeB
+;; a`seFdvijVyDd@_Ef@wDb@oDb@qD^mDd@
+;; cbteF`}ijVh@fIb@vGh@pI
+;; k~seFrzjjVf@G
+
+
+(main
+ "900 John R Wooden Dr, West Lafayette, IN 47907"
+ "2400 Yeager Rd, West Lafayette, IN 47906")
+
+(time
+ (main
+  "2400 Yeager Rd, West Lafayette, IN 47906"
+  "900 John R Wooden Dr, West Lafayette, IN 47907"))
+
+;; (Single threaded) Evaluation took:
+;; 75.316 seconds of real time
+
+;; (Pooled threads [5]) Evaluation took:
+;; 61.992 seconds of real time
+
+;; (Pooled threads [10]) Evaluation took:
+;; 65.041 seconds of real time
+
+;; (Pooled threads [50]) Evaluation took:
+;; 127.582 seconds of real time
+
 
 ;; [ ] able to save gif to s3
 ;; [ ] add database storing s3 urls
+;; [ ] add README
+;; [ ] add summary printout, how many legs, points, etc
+;; [ ] add correct heading orientation
+;; [ ] try to get threading going for the individual image downloads
+
+
+;; (defparameter *threadpool* (cl-threadpool:make-threadpool 5))
+;; (cl-threadpool:start *threadpool*)
+;; (time (loop for data in '(4 5 6) do
+;;   (cl-threadpool:add-job
+;;    *threadpool*
+;;    (sleep data))))
+;; 15.016 seconds...
