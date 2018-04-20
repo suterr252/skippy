@@ -3,6 +3,7 @@
 (print "src/main.lisp eval'd")
 
 (defparameter tmp-dir "~/quicklisp/local-projects/skippy/tmp/")
+
 (defun range (max &key (min 0) (step 1))
   (loop for n from min below max by step
         collect n))
@@ -33,6 +34,7 @@
                  (download-image (car data) (cadr data)))))
          :arguments (list *standard-output* chunk))))
 
+
 ;; TODO: Maybe try destructured binding on keys
 (defun parse-response (directions-api-response)
   ;; TODO: Collect instead of mutating response
@@ -50,12 +52,21 @@
 (defun decode-polylines (polylines)
   (loop for polyline in polylines collect (decode polyline)))
 
-(defun add-individual-heading (decoded-polyline)
-  (append decoded-polyline "188"))
+(defun angle-from-coordinates (lat1 long1 lat2 long2)
+  (let* ((dlon (- long2 long1))
+         (y (* (sin dlon) (cos lat2)))
+         (x (- (* (cos lat1) (sin lat2))
+               (* (sin lat1) (cos lat2) (cos dlon))))
+         (tmp1 (atan y x))
+         (tmp2 (rad-to-deg tmp1))
+         (bearing (mod (+ tmp2 360) 360)))
+    bearing))
 
-(defun add-headings (polylines)
-  (loop for polyline in polylines
-        collect (add-individual-heading polyline)))
+(defun deg-to-rad (degrees)
+  (* pi (/ degrees 180.0)))
+
+(defun rad-to-deg (rad)
+  (* rad (/ 180.0 pi)))
 
 (defun main (origin destination)
   (format t "beginning route from ~a to ~a~%" origin destination)
@@ -66,8 +77,11 @@
          (decoded-polylines-lists (decode-polylines encoded-polylines))
          (decoded-polylines (flatten-once decoded-polylines-lists)))
     (cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)
+
     (print "##### decoded polylines ####")
-    (print decoded-polylines);; nesty
+    ;; (print decoded-polylines)
+    (loop for x in decoded-polylines do
+          (print x))
 
     (defparameter urls-and-paths ())
     (let ((file-count 0))
@@ -82,8 +96,8 @@
                 (append urls-and-paths (list (list target-url save-path)))))
         (incf file-count)))
 
-    (print "###### urls-and-paths #######")
-    (print urls-and-paths)
+    ;; (print "###### urls-and-paths #######")
+    ;; (print urls-and-paths)
 
     (let* ((partitioned-list (partition-in 4 urls-and-paths))
            (threads (threaded-get-requests partitioned-list)))
@@ -114,3 +128,24 @@
 ;; [ ] add database storing s3 urls
 ;; [ ] add summary printout, how many legs, points, etc
 ;; [ ] add correct heading orientation
+;; [ ] unit testing framework
+
+(defparameter asd '((37.785698 -122.44389)
+                   (37.78577 -122.44339)
+                   (37.78577 -122.44339)
+                    (37.79042 -122.44918)))
+
+(let ((prev-angle nil)
+      (results ()))
+  (loop for (cur next) on asd do
+    (let ((lat1 (car cur))
+          (long1 (cadr cur)))
+      (if (not next)
+          (setf results (append results (list (list (format nil "~v$" 3 prev-angle)))))
+          (let ((lat2 (car next))
+                (long2 (cadr next)))
+            (setf results (append results (list (list (format nil "~v$" 3 (angle-from-coordinates lat1 long1 lat2 long2))))))
+            (setf prev-angle (angle-from-coordinates lat1 long1 lat2 long2))))))
+  results)
+
+(angle-from-coordinate 37.785698 -122.44389 37.79042 -122.44918)
