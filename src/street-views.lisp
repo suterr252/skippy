@@ -3,7 +3,7 @@
 (print "src/street-views.lisp eval'd")
 
 (defparameter streetview-base-url "https://maps.googleapis.com/maps/api/streetview")
-(defparameter streetview-size "600x600")
+(defparameter streetview-size "300x300")
 (defparameter streetview-heading "165")
 
 (defun image-url (streetview-latlong streetview-heading)
