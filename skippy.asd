@@ -11,6 +11,7 @@
                #:drakma
                #:yason
                #:cl-utilities
+               #:clack
                #:cl-fad
                #:cl-json)
   :components ((:file "package")
