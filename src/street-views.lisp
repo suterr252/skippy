@@ -16,9 +16,6 @@
           streetview-heading
           skippy::streetview-key))
 
-(defun get-save-path (name &optional (extension "png"))
-  (format nil "~a/quicklisp/local-projects/skippy/tmp/~a.~a" "~" name extension))
-
 (defun download-image (image-url save-path)
   (trivial-download:download image-url save-path))
 

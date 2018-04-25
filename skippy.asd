@@ -6,19 +6,22 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:hunchentoot
-               #:trivial-download
-               #:drakma
-               #:yason
-               #:postmodern
-               #:alexandria
-               #:optima
+  :depends-on (#:alexandria
+               #:cl-fad
+               #:cl-json
                #:cl-utilities
                #:clack
-               #:cl-fad
-               #:cl-json)
+               #:drakma
+               #:hunchentoot
+               #:optima
+               #:postmodern
+               #:trivial-download
+               #:yason
+               #:zs3)
   :components ((:file "package")
                (:file "skippy")
                (:file "src/directions")
+               (:file "src/glue")
                (:file "src/polyline-decoder")
+               (:file "src/s3")
                (:file "src/street-views")))

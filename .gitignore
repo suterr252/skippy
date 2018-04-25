@@ -1,4 +1,4 @@
 config.lisp
 tmp/*
 .DS_Store
-
+.aws
