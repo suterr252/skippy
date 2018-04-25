@@ -10,6 +10,9 @@
                #:trivial-download
                #:drakma
                #:yason
+               #:postmodern
+               #:alexandria
+               #:optima
                #:cl-utilities
                #:clack
                #:cl-fad

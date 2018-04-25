@@ -1,5 +1,7 @@
 ;;;; src/street-views.lisp
 
+(in-package #:skippy)
+
 (print "src/street-views.lisp eval'd")
 
 (defparameter streetview-base-url "https://maps.googleapis.com/maps/api/streetview")

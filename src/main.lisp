@@ -1,5 +1,7 @@
 ;;;; src/main.lisp
 
+(in-package #:skippy)
+
 (print "src/main.lisp eval'd")
 
 (defparameter tmp-dir "~/quicklisp/local-projects/skippy/tmp/")

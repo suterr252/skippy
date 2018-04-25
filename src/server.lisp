@@ -1,3 +1,9 @@
+;;;; src/server.lisp
+
+(in-package #:skippy)
+
+(print "src/server.lisp eval'd")
+
 (defvar *clack-server*
   (clack:clackup
    (lambda (env)

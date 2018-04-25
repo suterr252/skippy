@@ -1,5 +1,7 @@
 ;;;; src/polyline-decoder.lisp
 
+(in-package #:skippy)
+
 (print "src/polyline-decoder.lisp eval'd")
 
 (defun shl (x width bits)

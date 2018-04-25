@@ -1,5 +1,7 @@
 ;;;; src/directions.lisp
 
+(in-package #:skippy)
+
 (print "src/directions.lisp eval'd")
 
 (defparameter directions-base-url "https://maps.googleapis.com/maps/api/directions/json")
@@ -30,3 +32,6 @@
     (if (string= name key)
         obj
         (find-val-from rest key))))
+
+(print "from src/directions.lisp")
+(print *package*)
