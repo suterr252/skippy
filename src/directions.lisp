@@ -32,6 +32,3 @@
     (if (string= name key)
         obj
         (find-val-from rest key))))
-
-(print "from src/directions.lisp")
-(print *package*)

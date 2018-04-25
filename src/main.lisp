@@ -40,19 +40,29 @@
 ;; TODO: Maybe try destructured binding on keys
 (defun parse-response (directions-api-response)
   ;; TODO: Collect instead of mutating response
-  (defparameter all-polylines ())
-  (let ((routes (find-val-from directions-api-response "routes")))
+  ;; (defparameter all-polylines ())
+  (let ((all-polylines ())
+        (routes (find-val-from directions-api-response "routes")))
     (loop for route in routes do
       (let ((legs (find-val-from route "legs")))
         (loop for leg in legs do
           (let ((steps (find-val-from leg "steps")))
             (loop for single-step in steps do
               (push (cadr (find-val-from single-step "polyline"))
-                    all-polylines)))))))
-  (reverse all-polylines))
+                    all-polylines))))))
+    (reverse all-polylines)
+    )
+  ;;(reverse all-polylines)
+  )
 
 (defun decode-polylines (polylines)
   (loop for polyline in polylines collect (decode polyline)))
+
+(defun deg-to-rad (degrees)
+  (* pi (/ degrees 180.0)))
+
+(defun rad-to-deg (rad)
+  (* rad (/ 180.0 pi)))
 
 (defun angle-from-coordinates (lat1 long1 lat2 long2)
   (let* ((dlon (- long2 long1))
@@ -63,12 +73,6 @@
          (tmp2 (rad-to-deg tmp1))
          (bearing (mod (+ tmp2 360) 360)))
     bearing))
-
-(defun deg-to-rad (degrees)
-  (* pi (/ degrees 180.0)))
-
-(defun rad-to-deg (rad)
-  (* rad (/ 180.0 pi)))
 
 (defun generate-heading-list (duples)
   (let ((prev-angle nil)
@@ -81,9 +85,18 @@
                   (append results (list (list (format nil "~v$" 3 prev-angle)))))
             (let ((lat2 (car next))
                   (long2 (cadr next)))
-              (setf results (append results (list (list (format nil "~v$" 3 (angle-from-coordinates lat1 long1 lat2 long2))))))
+              (setf results
+                    (append results
+                            (list
+                             (list
+                              (format nil "~v$" 3
+                                      (angle-from-coordinates
+                                       lat1 long1 lat2 long2))))))
               (setf prev-angle (angle-from-coordinates lat1 long1 lat2 long2))))))
     results))
+
+(defun merge-lists (first-list second-list)
+  (mapcar #'(lambda (a b) (append a b)) first-list second-list))
 
 (defun main (origin destination)
   (format t "beginning route from ~a to ~a~%" origin destination)
@@ -92,52 +105,43 @@
          (directions-api-response (get-directions-api-response from to))
          (encoded-polylines (parse-response directions-api-response))
          (decoded-polylines-lists (decode-polylines encoded-polylines))
-         (decoded-polylines (flatten-once decoded-polylines-lists)))
+         (decoded-polylines (flatten-once decoded-polylines-lists))
+         (heading-list (generate-heading-list decoded-polylines)))
     (cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)
 
-    (print "##### decoded polylines ####")
-    (print decoded-polylines)
+    (let ((urls-and-paths ())
+          (all-three (merge-lists decoded-polylines
+                                  heading-list)))
+      (print "##### all-three #####")
+      (print all-three)
 
-    (defparameter heading-list (generate-heading-list decoded-polylines))
-    (print "##### heading-list #####")
-    (print heading-list)
+      ;; (defparameter urls-and-paths ())
+      (let ((file-count 0))
+        (loop for latlng-list in all-three do
+          (let* ((lat (car latlng-list))
+                 (lng (cadr latlng-list))
+                 (latlong (format nil "~a,~a" lat lng))
+                 (heading (caddr latlng-list))
+                 (target-url (image-url latlong heading))
+                 (save-path (get-save-path
+                             (build-filename file-count latlong heading))))
+            (setf urls-and-paths (append urls-and-paths
+                                         (list (list target-url save-path)))))
+          (incf file-count)))
+      (let* ((partitioned-list (partition-in 4 urls-and-paths))
+             (threads (threaded-get-requests partitioned-list)))
+        (loop for thread in threads
+              do (sb-thread:join-thread thread)))
 
-    (defparameter all-three (mapcar #'(lambda (a b) (append a b)) decoded-polylines heading-list))
-
-    (print "##### all-three #####")
-    (print all-three)
-
-    ;; (loop for x in decoded-polylines do
-    ;;       (print x))
-
-    (defparameter urls-and-paths ())
-    (let ((file-count 0))
-      (loop for latlng-list in all-three do
-        (let* ((lat (car latlng-list))
-               (lng (cadr latlng-list))
-               (latlong (format nil "~a,~a" lat lng))
-               (heading (caddr latlng-list))
-               (target-url (image-url latlong heading))
-               (save-path (get-save-path
-                           (build-filename file-count latlong heading))))
-          (setf urls-and-paths (append urls-and-paths (list (list target-url save-path)))))
-        (incf file-count)))
-
-    ;; (print "###### urls-and-paths #######")
-    ;; (print urls-and-paths)
-
-    (let* ((partitioned-list (partition-in 4 urls-and-paths))
-           (threads (threaded-get-requests partitioned-list)))
-      (loop for thread in threads
-            do (sb-thread:join-thread thread)))
-
-    (print "##### Creating GIF now. ######")
-    (make-gif (get-save-path "*") (get-save-path "out" "gif"))))
+      ;; (print "###### urls-and-paths #######")
+      ;; (print urls-and-paths)
+      (print "##### Creating GIF now. ######")
+      (make-gif (get-save-path "*") (get-save-path "out" "gif")))))
 
 
 (time (main
-  "Lawson Computer Science Building, 305 N University St, West Lafayette, IN 47907"
-  "John W. Hicks Undergraduate Library, 504 W State St, West Lafayette, IN 47907"))
+       "Lawson Computer Science Building, 305 N University St, West Lafayette, IN 47907"
+       "John W. Hicks Undergraduate Library, 504 W State St, West Lafayette, IN 47907"))
 
 
 (time (main
@@ -145,8 +149,8 @@
        "104 Walnut Street San Francisco, CA 94118"))
 
 (time (main
-  "2400 Yeager Rd, West Lafayette, IN 47906"
-  "900 John R Wooden Dr, West Lafayette, IN 47907"))
+       "2400 Yeager Rd, West Lafayette, IN 47906"
+       "900 John R Wooden Dr, West Lafayette, IN 47907"))
 
 ;; took 47 seconds at 600x600
 ;; took 24 seconds at 300x300
@@ -167,45 +171,3 @@
 ;; [ ] add summary printout, how many legs, points, etc
 ;; [ ] add correct heading orientation
 ;; [ ] unit testing framework
-
-(defparameter asd '((37.785698 -122.44389)
-                   (37.78577 -122.44339)
-                   (37.78577 -122.44339)
-                    (37.79042 -122.44918)))
-
-
-(generate-heading-list asd)
-
-
-
-(angle-from-coordinate 37.785698 -122.44389 37.79042 -122.44918)
-
-(defparameter dpl '((40.42774 -86.91666) (40.42725 -86.91665) (40.42622 -86.91666)
-                   (40.4262 -86.91666) (40.42597 -86.91666) (40.425167 -86.916664)
-                   (40.424908 -86.91666) (40.424168 -86.91665) (40.424168 -86.91665)
-                   (40.4241 -86.91666) (40.42408 -86.915924) (40.42408 -86.91582)
-                   (40.42408 -86.91578) (40.42411 -86.91572) (40.424088 -86.91503)
-                   (40.42408 -86.914856) (40.42408 -86.91424) (40.42407 -86.91384)
-                   (40.42407 -86.91376) (40.42405 -86.91323) (40.42403 -86.91266)))
-(defparameter hds '(("180.820") ("179.612") ("180.000") ("180.000") ("179.501") ("181.541")
-                   ("180.540") ("0.000") ("174.198") ("268.359") ("270.000") ("270.000")
-                   ("298.692") ("267.904") ("267.267") ("269.994") ("268.193") ("270.000")
-                    ("267.727") ("267.909") ("267.909")))
-(print dpl)
-
-(defparameter atw '((40.42774 -86.91666 "180.820") (40.42725 -86.91665 "179.612")
-                   (40.42622 -86.91666 "180.000") (40.4262 -86.91666 "180.000")
-                   (40.42597 -86.91666 "179.501") (40.425167 -86.916664 "181.541")
-                   (40.424908 -86.91666 "180.540") (40.424168 -86.91665 "0.000")
-                   (40.424168 -86.91665 "174.198") (40.4241 -86.91666 "268.359")
-                   (40.42408 -86.915924 "270.000") (40.42408 -86.91582 "270.000")
-                   (40.42408 -86.91578 "298.692") (40.42411 -86.91572 "267.904")
-                   (40.424088 -86.91503 "267.267") (40.42408 -86.914856 "269.994")
-                   (40.42408 -86.91424 "268.193") (40.42407 -86.91384 "270.000")
-                   (40.42407 -86.91376 "267.727") (40.42405 -86.91323 "267.909")
-                    (40.42403 -86.91266 "267.909")))
-
-(loop for x in atw
-      do (print (car x))
-         (print (cadr x))
-         (print (caddr x)))
