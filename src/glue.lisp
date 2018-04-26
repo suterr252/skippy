@@ -22,16 +22,21 @@
 
 
 (defun build-filename (idx latlng heading)
-  (format nil "~4,'0d,~a,~a" idx latlng heading))
+  (format nil "~3,'0d,~a,~a" idx latlng heading))
 
-(defun watermark-image (file)
+(defun watermark-image (file total-file-count)
   (uiop:run-program
-   (format nil "~a ~a ~a ~a ~a ~a ~a ~a ~a"
+   ;; "~/quicklisp/local-projects/skippy/tmp/652431//0002,37.79186,-122.439415,82.527.png"
+   (format nil "~a ~a ~a ~a ~a ~a ~a ~a ~a ~a ~a"
            "convert"
            file ;;"dragon.gif"
            "-background"
            "Khaki"
-           "label:'Faerie Dragon'"
+           "label:'"
+           (format nil "~a/~3,'0d"
+                   (subseq (car (last (cl-utilities:split-sequence #\/ file))) 0 4)
+                   total-file-count)
+           "'"
            "-gravity"
            "Center"
            "-append"
@@ -51,7 +56,7 @@
            file ;; "chop_bottom.gif"
            )))
 
-(defun threaded-get-requests (list)
+(defun threaded-get-requests (list total-file-count)
   (loop for chunk in list
         collect
         (sb-thread:make-thread
@@ -63,7 +68,7 @@
                    (download-image url output)
                    ;; TODO: Maybe update image after downloaded?
                    (trim-image output)
-                   (watermark-image output)
+                   (watermark-image output total-file-count)
                    ))))
          :arguments (list *standard-output* chunk))))
 
@@ -132,6 +137,8 @@
           filename
           extension))
 
+(defparameter *num-files* 0)
+
 (defun main (origin destination)
   (format t "beginning route from ~a to ~a~%" origin destination)
   (let* ((tmp-dir (create-tmp-dir-name))
@@ -160,9 +167,11 @@
                              (build-filename file-count latlong heading))))
             (setf urls-and-paths (append urls-and-paths
                                          (list (list target-url save-path)))))
-          (incf file-count)))
+          (incf file-count))
+        (setf *num-files* file-count)
+        )
       (let* ((partitioned-list (partition-in 4 urls-and-paths))
-             (threads (threaded-get-requests partitioned-list)))
+             (threads (threaded-get-requests partitioned-list *num-files*)))
         (loop for thread in threads
               do (sb-thread:join-thread thread)))
 
@@ -177,4 +186,5 @@
         (send-gif-to-s3 input-file-path-str output-filename)
         (print "##### Verify gif made it to S3 #####")
         (print "##### Deleting residual local files ######")
-        (cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)))))
+        ;;(cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)
+        ))))
