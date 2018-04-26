@@ -24,6 +24,33 @@
 (defun build-filename (idx latlng heading)
   (format nil "~4,'0d,~a,~a" idx latlng heading))
 
+(defun watermark-image (file)
+  (uiop:run-program
+   (format nil "~a ~a ~a ~a ~a ~a ~a ~a ~a"
+           "convert"
+           file ;;"dragon.gif"
+           "-background"
+           "Khaki"
+           "label:'Faerie Dragon'"
+           "-gravity"
+           "Center"
+           "-append"
+           file
+           ;;"anno_label.jpg"
+           )))
+
+(defun trim-image (file)
+  (uiop:run-program
+   (format nil "~a ~a ~a ~a ~a ~a ~a"
+           "convert"
+           file ;;"frame_red.gif"
+           "-gravity"
+           "South"
+           "-chop"
+           "0x30"
+           file ;; "chop_bottom.gif"
+           )))
+
 (defun threaded-get-requests (list)
   (loop for chunk in list
         collect
@@ -31,7 +58,13 @@
          #'(lambda (standard-output chunk)
              (let ((*standard-output* standard-output))
                (loop for data in chunk do
-                 (download-image (car data) (cadr data)))))
+                 (let ((url (car data))
+                       (output (cadr data)))
+                   (download-image url output)
+                   ;; TODO: Maybe update image after downloaded?
+                   (trim-image output)
+                   (watermark-image output)
+                   ))))
          :arguments (list *standard-output* chunk))))
 
 
@@ -134,16 +167,14 @@
               do (sb-thread:join-thread thread)))
 
       (print "##### Creating GIF now. ######")
-      (make-gif (get-save-path tmp-dir "*") (get-save-path tmp-dir "out" "gif"))
-
-      (print "##### Sending GIF to S3 now. ######")
-      ;;(defparameter input-file-path-str "./tmp/out.gif")
-      (let ((input-file-path-str (format nil "~a~a" tmp-dir "out.gif"))
-            (output-filename "output-filename.gif"))
-        (send-gif-to-s3 input-file-path-str output-filename))
-
-      (print "##### Verify gif made it to S3 #####")
-
-      (print "##### Deleting residual local files ######")
-      (cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)
-      )))
+      (let* ((local-gif-filename "out")
+            (s3-filename "out")
+            (input-file-path-str (format nil "~a~a.gif" tmp-dir local-gif-filename))
+             (output-filename (format nil "~a+to+~a.gif" from to)))
+        (make-gif (get-save-path tmp-dir "*")
+                  (get-save-path tmp-dir local-gif-filename "gif"))
+        (print "##### Sending GIF to S3 now. ######")
+        (send-gif-to-s3 input-file-path-str output-filename)
+        (print "##### Verify gif made it to S3 #####")
+        (print "##### Deleting residual local files ######")
+        (cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)))))

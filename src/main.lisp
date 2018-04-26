@@ -14,6 +14,17 @@
        "104 Walnut Street San Francisco, CA 94118"))
 
 (time (main
+       "2750 Jackson St, San Francisco, CA 94115"
+       "2343 Fillmore St, San Francisco, CA 94115"))
+
+(time (main
+       "2 N Salisbury St, West Lafayette, IN 47906"
+       "329 W State St, West Lafayette, IN 47906"))
+
+(time (main "10 Rockefeller Plaza, New York, NY 10020"
+            "1073 6th Ave, New York, NY 10018"))
+
+(time (main
        "2400 Yeager Rd, West Lafayette, IN 47906"
        "900 John R Wooden Dr, West Lafayette, IN 47907"))
 

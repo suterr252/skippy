@@ -7,6 +7,7 @@
   :version "0.0.1"
   :serial t
   :depends-on (#:alexandria
+               #:caveman2
                #:cl-fad
                #:cl-json
                #:cl-utilities
@@ -16,6 +17,7 @@
                #:optima
                #:postmodern
                #:trivial-download
+               #:woo
                #:yason
                #:zs3)
   :components ((:file "package")
