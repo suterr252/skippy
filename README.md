@@ -20,7 +20,7 @@ Let's demonstrate with an example route of `3065 Jackson St San Francisco, CA 94
 Here is a visual overview of our route
 ![Route Overview](https://github.com/suterr252/skippy/blob/master/img/walking-route.png)
 
-We pass this along to the [Google directions API](https://developers.google.com/maps/documentation/directions/) which gives us, among other things, a series of (encoded) polylines for each leg of the trip (remember, this is a Lisp - AKA a List Processing Language, so we'll be abstracting our data as lists):
+We pass this along to the [Google directions API](https://developers.google.com/maps/documentation/directions/) which gives us, among other things, a series of (encoded) polylines for each leg of the trip (remember, this is a Lisp - a LISt Processing Language - so we'll be abstracting our data as lists):
 
 ``` common-lisp
 (;; polyline 1
@@ -41,7 +41,9 @@ But we're using an arcane, secret language for which there aren't many community
 
 Or in tabular form, here:
 ``` common-lisp1
-((37.791107 -122.44537) (37.791218 -122.44449)
+((37.791107 -122.44537)
+ ;; Each nested list represents a lat:long pair
+ (37.791218 -122.44449)
  (37.791428 -122.44285) (37.79165 -122.44118)
  (37.791847 -122.439514) (37.79186 -122.439415)
  (37.79206 -122.43787) (37.79226 -122.43632)
@@ -115,4 +117,4 @@ $ ...
 
 Range list generating function `#'range` was borrowed from [here](https://stackoverflow.com/questions/13937520/pythons-range-analog-in-common-lisp#answer-13937652)
 
-Bit shifting operations `#'shl` and `#'shr` were borrowed from (here](http://tomszilagyi.github.io/2016/01/CL-bitwise-Rosettacode)
+Bit shifting operations `#'shl` and `#'shr` were borrowed from [here](http://tomszilagyi.github.io/2016/01/CL-bitwise-Rosettacode)
