@@ -98,14 +98,21 @@ $ ...
 
 ## Libraries used:
 
+
 [drakma](https://github.com/edicl/drakma), a Common Lisp HTTP client
+
+
 [psychiq](https://github.com/fukamachi/psychiq), Background job processing for common lisp
+
+
 [trivial-download](https://github.com/eudoxia0/trivial-download), a utility for downloading remote files
+
+
 [zs3](https://github.com/xach/zs3), a library for interacting with AWS's S3
 
 
 ## Misc. Code Snippets:
 
-Range list generating function `#'range' was borrowed from [here](https://stackoverflow.com/questions/13937520/pythons-range-analog-in-common-lisp#answer-13937652)
+Range list generating function `#'range` was borrowed from [here](https://stackoverflow.com/questions/13937520/pythons-range-analog-in-common-lisp#answer-13937652)
 
-Bit shifting operations `#'shl' and `#'shr' were borrowed from (here](http://tomszilagyi.github.io/2016/01/CL-bitwise-Rosettacode)
+Bit shifting operations `#'shl` and `#'shr` were borrowed from (here](http://tomszilagyi.github.io/2016/01/CL-bitwise-Rosettacode)
