@@ -74,8 +74,11 @@ Or, again, in tabular form:
 
 
 
-We will there go through and request/download an image corresponding to each location from the Google Street View Image API, process them, and combine them into a gif.
+We will there go through and download an image for each latitude:longitude:heading tuple from the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/).
 
+From here we will rely on [ImageMagick](https://www.imagemagick.org/script/index.php) to `"to create, edit, compose, or convert bitmap images"` (process these images and then create a GIF).
+
+From there, we will send our generated gif to Amazon's [S3](https://aws.amazon.com/s3/) for storage with a url of `https://s3.amazonaws.com/skippy-cs252/<filename>.gif` where the filename is formed via the input directions. For the example above, this would be [https://s3.amazonaws.com/skippy-cs252/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif](https://s3.amazonaws.com/skippy-cs252/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif).
 
 ![Final GIF](https://github.com/suterr252/skippy/blob/master/img/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif)
 
@@ -86,7 +89,7 @@ We will there go through and request/download an image corresponding to each loc
 $ psychiq --host localhost --port 6379 --system skippy
 
 # run server:
-$ blahhh...
+$ ...
 
 
 
@@ -97,15 +100,12 @@ $ blahhh...
 
 [drakma](https://github.com/edicl/drakma), a Common Lisp HTTP client
 [psychiq](https://github.com/fukamachi/psychiq), Background job processing for common lisp
-[postmodern](https://github.com/marijnh/Postmodern), a Common Lisp PostgreSQL programming interface
 [trivial-download](https://github.com/eudoxia0/trivial-download), a utility for downloading remote files
 [zs3](https://github.com/xach/zs3), a library for interacting with AWS's S3
 
 
 ## Misc. Code Snippets:
 
-Range list generating function `#'range' was borrowed from here:
-https://stackoverflow.com/questions/13937520/pythons-range-analog-in-common-lisp#answer-13937652
+Range list generating function `#'range' was borrowed from [here](https://stackoverflow.com/questions/13937520/pythons-range-analog-in-common-lisp#answer-13937652)
 
-Bit shifting operations `#'shl' and `#'shr' were borrowed from here:
-http://tomszilagyi.github.io/2016/01/CL-bitwise-Rosettacode
+Bit shifting operations `#'shl' and `#'shr' were borrowed from (here](http://tomszilagyi.github.io/2016/01/CL-bitwise-Rosettacode)
