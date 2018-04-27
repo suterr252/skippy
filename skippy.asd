@@ -13,6 +13,7 @@
                #:cl-utilities
                #:clack
                #:drakma
+               #:flexi-streams
                #:hunchentoot
                #:optima
                #:postmodern

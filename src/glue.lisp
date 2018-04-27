@@ -4,6 +4,8 @@
 
 (print "src/glue.lisp eval'd")
 
+(defparameter *bucket-name* "skippy-cs252")
+
 (defun range (max &key (min 0) (step 1))
   (loop for n from min below max by step
         collect n))
@@ -128,8 +130,8 @@
   (mapcar #'(lambda (a b) (append a b)) first-list second-list))
 
 (defun create-tmp-dir-name ()
-  (format nil "~a/quicklisp/local-projects/skippy/tmp/~a/" "~"
-          (+ 10101 (random (expt 2 20)))))
+  (format nil "~a/.roswell/local-projects/skippy/tmp/~a/" "~"
+         (+ 10101 (random (expt 2 20)))))
 
 (defun get-save-path (full-dir-path filename &optional (extension "png"))
   (format nil "~a/~a.~a"
@@ -150,6 +152,9 @@
          (decoded-polylines (flatten-once decoded-polylines-lists))
          (heading-list (generate-heading-list decoded-polylines)))
 
+    (print "### Encoded polylines ###")
+    (print encoded-polylines)
+
     (let ((urls-and-paths ())
           (all-three (merge-lists decoded-polylines
                                   heading-list)))
@@ -168,8 +173,8 @@
             (setf urls-and-paths (append urls-and-paths
                                          (list (list target-url save-path)))))
           (incf file-count))
-        (setf *num-files* file-count)
-        )
+        (setf *num-files* file-count))
+      ;; TODO: Cap the number of images in the GIF here
       (let* ((partitioned-list (partition-in 4 urls-and-paths))
              (threads (threaded-get-requests partitioned-list *num-files*)))
         (loop for thread in threads
@@ -177,14 +182,24 @@
 
       (print "##### Creating GIF now. ######")
       (let* ((local-gif-filename "out")
-            (s3-filename "out")
-            (input-file-path-str (format nil "~a~a.gif" tmp-dir local-gif-filename))
-             (output-filename (format nil "~a+to+~a.gif" from to)))
+             (s3-filename "out")
+             (input-file-path-str (format nil "~a~a.gif" tmp-dir local-gif-filename))
+             (output-filename (format nil "~a+to+~a.gif" from to))
+             (output-filename-cleaned (remove #\, (remove #\+ output-filename)))
+             )
         (make-gif (get-save-path tmp-dir "*")
                   (get-save-path tmp-dir local-gif-filename "gif"))
         (print "##### Sending GIF to S3 now. ######")
-        (send-gif-to-s3 input-file-path-str output-filename)
+        (print "#### OUTPUT FILE NAME #####")
+        (print output-filename)
+        (print "#### OUTPUT FILE NAME CLEANED ######")
+        (print output-filename-cleaned)
+        (send-gif-to-s3 input-file-path-str output-filename-cleaned *bucket-name*)
         (print "##### Verify gif made it to S3 #####")
         (print "##### Deleting residual local files ######")
-        ;;(cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)
+        (print "#### TMP-DIR ####")
+        (print tmp-dir)
+        (cl-fad:delete-directory-and-files tmp-dir :if-does-not-exist :ignore)
+        (print "#### FINAL URL ####")
+        (print (format nil "https://s3.amazonaws.com/~a/~a" *bucket-name* output-filename-cleaned))
         ))))
