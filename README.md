@@ -1,13 +1,19 @@
 Note: My initial spec submission can be found [here](https://github.com/suterr252/skippy/blob/master/submitted.txt)
 
+# Skippy!
+
+
 This project aims to automate the experience of stepping through a route in Google Street View.
+
 
 Let's demonstrate with an example route of `3065 Jackson St San Francisco, CA 94115` to `2261 Fillmore St San Francisco, CA 94115`. That is, we will find the walking directions from the first locale to the second.
 
-Here is a visual overview of our route
-IMG: overview-route.img
 
-We pass this along to the Google directions API which gives us, among other things a series of polylines for each leg of the trip:
+Here is a visual overview of our route
+![Route Overview](https://github.com/suterr252/skippy/blob/master/img/walking-route.png)
+
+We pass this along to the [Google directions API](https://developers.google.com/maps/documentation/directions/) which gives us, among other things a series of polylines for each leg of the trip:
+(remember, this is a Lisp - AKA a List Processing Language, so we'll be using lists as data)
 
 ``` common-lisp
 (;; polyline 1
@@ -18,10 +24,15 @@ We pass this along to the Google directions API which gives us, among other thin
 
 Because we're using Common Lisp, there aren't many community sponsored libraries out there, thus we will be making our own implementation of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/decode-polyline.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
 
-IMG: polyline 1
-IMG: polyline 2
 
-Or in tabular form (remember, this is Lisp - AKA a List Processing Language), here:
+![First Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline1.png)
+
+
+![Second Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline2.png)
+
+
+
+Or in tabular form, here:
 ``` common-lisp1
 ((37.791107 -122.44537) (37.791218 -122.44449)
  (37.791428 -122.44285) (37.79165 -122.44118)
@@ -33,8 +44,12 @@ Or in tabular form (remember, this is Lisp - AKA a List Processing Language), he
  (37.79051 -122.43417))
 ```
 
+
 IMG: polyline arrow 1
+
+
 IMG: polyline arrow 2
+
 
 To these polylines, we will add a heading (bearing, or direction) to each location. The formula for doing so can be found [here](https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points#answer-18738281):
 ``` common-lisp
@@ -51,6 +66,7 @@ To these polylines, we will add a heading (bearing, or direction) to each locati
 We will there go through and request/download an image corresponding to each location from the Google Street View Image API, process them, and combine them into a gif.
 
 IMG: output gif.
+![Final GIF](https://github.com/suterr252/skippy/blob/master/img/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif)
 
 # Specific language implementation used:
 [SBCL](http://www.sbcl.org/), Steel Bank Common Lisp
