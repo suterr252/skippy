@@ -69,10 +69,7 @@ To these polylines, we will add a heading (bearing, or direction) to each locati
 Or more visually:
 
 
-IMG: polyline arrow 1
-
-
-IMG: polyline arrow 2
+![Vector Components](https://github.com/suterr252/skippy/blob/master/img/directions-added.jpg)
 
 
 We will there go through and request/download an image corresponding to each location from the Google Street View Image API, process them, and combine them into a gif.
