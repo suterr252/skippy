@@ -16,14 +16,16 @@
                #:hunchentoot
                #:optima
                #:postmodern
+               #:psychiq
                #:trivial-download
                #:woo
                #:yason
                #:zs3)
   :components ((:file "package")
-               (:file "skippy")
+               (:file "my-worker")
                (:file "src/directions")
                (:file "src/glue")
                (:file "src/polyline-decoder")
                (:file "src/s3")
-               (:file "src/street-views")))
+               (:file "src/street-views")
+               (:file "skippy")))
