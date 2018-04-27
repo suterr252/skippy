@@ -1,0 +1,24 @@
+I think I would like to try building this app in Haskell or a dialect of the Lisp family of programming languages; thus, I had some difficulty in finding a partner.
+
+Members:
+Rex Suter               suterr@purdue.edu
+
+Right now I am bouncing between three project ideas, but my primary choice seems to be that of a street-view-gif-generator. That is, I would like to programmatically recreate (and speed-up/ enhance) the experience of going into Google maps street view and clicking through a route visually because the manual process is incredibly tedious. The result would be a gif, almost like a flipbook, providing the user with a preview of their walkable route. This would be useful for visual folks who have trouble remembering directions. And it would be fun to build. And I enjoy Gifs.
+
+I did research over the weekend and I should be able to implement this using the Google maps directions API, the Google maps street view image API, ImageMagick, any web server, and an HTTP Client.
+
+A stretch goal would be adding Twilio to enable requesting and receiving of image-based-directions-gifs via MMS text messaging.
+
+I have many ideas in mind to further expand upon this base functionality.
+
+Technologies and Services:
+[[https://www.imagemagick.org/script/index.php][ImageMagick]]
+[[https://developers.google.com/maps/documentation/directions/][Google Directions API]]
+[[https://developers.google.com/maps/documentation/streetview/][Google Street View API]]
+[[https://www.twilio.com/sms][Twilio Programmable SMS]]
+
+I can't decide on a project name though:
+Google Pete-View
+Street-Pete
+TDB...
+

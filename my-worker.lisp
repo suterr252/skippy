@@ -12,8 +12,6 @@
     (print origin)
     (print "### destination ###")
     (print destination)
-    ;; (time (main
-    ;;        "2750 Jackson St, San Francisco, CA 94115"
-    ;;        "2343 Fillmore St, San Francisco, CA 94115"))
+    (time (main origin destination))
     )
   (print "##### bye from worker #####"))

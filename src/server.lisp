@@ -19,13 +19,14 @@
 
 ;; (clack:stop *clack-server*)
 
-(woo:run
- (lambda (env)
-   (declare (ignore env))
-   (print "hi")
-   '(200 (:content-type "text/plain") ("Hello, World!"))))
+(defparameter *server*
+  (woo:run
+   (lambda (env)
+     (declare (ignore env))
+     (print "hi")
+     '(200 (:content-type "text/plain") ("Hello, World!")))))
 
-(woo:stop)
+(woo:stop *server*)
 
 ;; (defun app (env)
 ;;   (declare (ignore env))
