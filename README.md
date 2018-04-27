@@ -88,10 +88,49 @@ From there, we will send our generated gif to Amazon's [S3](https://aws.amazon.c
 
 # Implementation Details
 
-# run redis for background job processing:
+## run redis for background job processing:
 $ psychiq --host localhost --port 6379 --system skippy
 
 Note: The background worker enables us to queue up many jobs, in order that we can process them all in a non-blocking, asynchronous manner. While this is currently working, there is not currently a web interface with which to queue up jobs, so I have been adding them locally rom my machine.
+
+## Queueing up jobs
+
+Using our worker:
+
+``` common-lisp
+(in-package #:skippy)
+
+(psy:connect-toplevel :host "localhost" :port 6379)
+
+(defclass my-worker (psy:worker) ())
+
+(defmethod psy:perform ((worker my-worker) &rest args)
+  (let ((origin (car args))
+        (destination (cadr args)))
+    (time (main origin destination))))
+
+```
+
+We can queue up jobs via the following
+
+``` common-lisp
+(psy:enqueue
+ 'my-worker
+ '("Lawson Computer Science Building, 305 N University St, West Lafayette, IN 47907"
+   "John W. Hicks Undergraduate Library, 504 W State St, West Lafayette, IN 47907"))
+
+(psy:enqueue
+ 'my-worker
+ '("10 Rockefeller Plaza, New York, NY 10020"
+   "1073 6th Ave, New York, NY 10018"))
+
+(psy:enqueue
+ 'my-worker
+ '("2 N Salisbury St, West Lafayette, IN 47906"
+   "329 W State St, West Lafayette, IN 47906"))
+```
+
+Or really any two reasonably close addresses.
 
 
 # Credits:
