@@ -5,6 +5,12 @@ Note: My initial spec submission can be found [here](https://github.com/suterr25
 
 This project aims to automate the experience of stepping through a route in Google Street View.
 
+# Specific language implementation used:
+[SBCL](http://www.sbcl.org/), Steel Bank Common Lisp
+
+## Some motivation for lisp:
+[Beating the Averages, Paul Graham (YCombinator)](http://www.paulgraham.com/avg.html)
+
 
 Let's demonstrate with an example route of `3065 Jackson St San Francisco, CA 94115` to `2261 Fillmore St San Francisco, CA 94115`. That is, we will find the walking directions from the first locale to the second.
 
@@ -12,8 +18,7 @@ Let's demonstrate with an example route of `3065 Jackson St San Francisco, CA 94
 Here is a visual overview of our route
 ![Route Overview](https://github.com/suterr252/skippy/blob/master/img/walking-route.png)
 
-We pass this along to the [Google directions API](https://developers.google.com/maps/documentation/directions/) which gives us, among other things a series of polylines for each leg of the trip:
-(remember, this is a Lisp - AKA a List Processing Language, so we'll be using lists as data)
+We pass this along to the [Google directions API](https://developers.google.com/maps/documentation/directions/) which gives us, among other things, a series of (encoded) polylines for each leg of the trip (remember, this is a Lisp - AKA a List Processing Language, so we'll be abstracting our data as lists):
 
 ``` common-lisp
 (;; polyline 1
@@ -22,7 +27,7 @@ We pass this along to the [Google directions API](https://developers.google.com/
  "_jteFb_hjVnDa@nDc@h@I")
 ```
 
-Because we're using Common Lisp, there aren't many community sponsored libraries out there, thus we will be making our own implementation of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/decode-polyline.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
+But we're using an arcane, secret language for which there aren't many community sponsored libraries available, thus we will be making our own implementation of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/decode-polyline.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
 
 
 ![First Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline1.png)
@@ -45,10 +50,8 @@ Or in tabular form, here:
 ```
 
 
-IMG: polyline arrow 1
+While less convenient, this is neat because it means there's plenty of low hanging fruit for which one can get open source contributions. I intend to submit mine to [QuickLisp](https://www.quicklisp.org/beta/), analogous to node's NPM so others can use it.
 
-
-IMG: polyline arrow 2
 
 
 To these polylines, we will add a heading (bearing, or direction) to each location. The formula for doing so can be found [here](https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points#answer-18738281):
@@ -63,17 +66,22 @@ To these polylines, we will add a heading (bearing, or direction) to each locati
  (37.79051 -122.43417 "165.776"))
 ```
 
+Or more visually:
+
+
+IMG: polyline arrow 1
+
+
+IMG: polyline arrow 2
+
+
 We will there go through and request/download an image corresponding to each location from the Google Street View Image API, process them, and combine them into a gif.
 
-IMG: output gif.
+
 ![Final GIF](https://github.com/suterr252/skippy/blob/master/img/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif)
 
-# Specific language implementation used:
-[SBCL](http://www.sbcl.org/), Steel Bank Common Lisp
 
-## Some motivation for lisp:
-[Beating the Averages, Paul Graham (YCombinator)](http://www.paulgraham.com/avg.html)
-
+# Implementation Details
 
 # run redis for background job processing:
 $ psychiq --host localhost --port 6379 --system skippy
