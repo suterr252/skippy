@@ -18,6 +18,8 @@ Let's demonstrate with an example route of `3065 Jackson St San Francisco, CA 94
 
 
 Here is a visual overview of our route
+
+
 ![Route Overview](https://github.com/suterr252/skippy/blob/master/img/walking-route.png)
 
 We pass this along to the [Google directions API](https://developers.google.com/maps/documentation/directions/) which gives us, among other things, a series of (encoded) polylines for each leg of the trip (remember, this is a Lisp - a LISt Processing Language - so we'll be abstracting our data as lists):
@@ -32,10 +34,7 @@ We pass this along to the [Google directions API](https://developers.google.com/
 But we're using an arcane, secret language for which there aren't many community sponsored libraries available, thus we will be making our own implementation of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/decode-polyline.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
 
 
-![First Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline1.png)
-
-
-![Second Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline2.png)
+![First Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline1.png) ![Second Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline2.png)
 
 
 
@@ -64,7 +63,9 @@ To these polylines, we will add a heading (bearing, or direction) to each locati
 
 Or, again, in tabular form:
 ``` common-lisp
-((37.791107 -122.44537 "82.843") (37.791218 -122.44449 "82.676")
+((37.791107 -122.44537 "82.843")
+ ;; Each nested list represents a lat:long:heading triple
+ (37.791218 -122.44449 "82.676")
  (37.791428 -122.44285 "82.420") (37.79165 -122.44118 "83.166")
  (37.791847 -122.439514 "83.390") (37.79186 -122.439415 "82.527")
  (37.79206 -122.43787 "82.666") (37.79226 -122.43632 "90.000")
