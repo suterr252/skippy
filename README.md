@@ -3,7 +3,7 @@ Note: My initial spec submission can be found [here](https://github.com/suterr25
 # Skippy!
 
 
-This project aims to automate the experience of stepping through a route in Google Street View.
+This project aims to automate the experience of stepping through a route in Google Street View images.
 
 # Specific language implementation used:
 [SBCL](http://www.sbcl.org/), Steel Bank Common Lisp
@@ -11,6 +11,8 @@ This project aims to automate the experience of stepping through a route in Goog
 ## Some motivation for lisp:
 [Beating the Averages, Paul Graham (YCombinator)](http://www.paulgraham.com/avg.html)
 
+
+# What's the project do?
 
 Let's demonstrate with an example route of `3065 Jackson St San Francisco, CA 94115` to `2261 Fillmore St San Francisco, CA 94115`. That is, we will find the walking directions from the first locale to the second.
 
@@ -50,11 +52,15 @@ Or in tabular form, here:
 ```
 
 
-While less convenient, this is neat because it means there's plenty of low hanging fruit for which one can get open source contributions. I intend to submit mine to [QuickLisp](https://www.quicklisp.org/beta/), analogous to node's NPM so others can use it.
+While less convenient, this is neat because it means there's plenty of low hanging fruit for which one can make open source contributions. I intend to submit mine to the [QuickLisp](https://www.quicklisp.org/beta/) library manager (analogous to node's NPM) so others can use it.
 
 
 
 To these polylines, we will add a heading (bearing, or direction) to each location. The formula for doing so can be found [here](https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points#answer-18738281):
+
+![Vector Components](https://github.com/suterr252/skippy/blob/master/img/directions-added.jpg)
+
+Or, again, in tabular form:
 ``` common-lisp
 ((37.791107 -122.44537 "82.843") (37.791218 -122.44449 "82.676")
  (37.791428 -122.44285 "82.420") (37.79165 -122.44118 "83.166")
@@ -66,10 +72,6 @@ To these polylines, we will add a heading (bearing, or direction) to each locati
  (37.79051 -122.43417 "165.776"))
 ```
 
-Or more visually:
-
-
-![Vector Components](https://github.com/suterr252/skippy/blob/master/img/directions-added.jpg)
 
 
 We will there go through and request/download an image corresponding to each location from the Google Street View Image API, process them, and combine them into a gif.
