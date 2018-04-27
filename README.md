@@ -11,6 +11,7 @@ This project aims to automate the experience of stepping through a route in Goog
 ## Some motivation for lisp:
 [Beating the Averages, Paul Graham (YCombinator)](http://www.paulgraham.com/avg.html)
 
+![Lisp Cycles](https://github.com/suterr252/skippy/blob/master/img/lisp_cycles.png)
 
 # What's the project do?
 
@@ -91,10 +92,7 @@ From there, we will send our generated gif to Amazon's [S3](https://aws.amazon.c
 # run redis for background job processing:
 $ psychiq --host localhost --port 6379 --system skippy
 
-# run server:
-$ ...
-
-
+Note: The background worker enables us to queue up many jobs, in order that we can process them all in a non-blocking, asynchronous manner. While this is currently working, there is not currently a web interface with which to queue up jobs, so I have been adding them locally rom my machine.
 
 
 # Credits:
@@ -119,3 +117,8 @@ $ ...
 Range list generating function `#'range` was borrowed from [here](https://stackoverflow.com/questions/13937520/pythons-range-analog-in-common-lisp#answer-13937652)
 
 Bit shifting operations `#'shl` and `#'shr` were borrowed from [here](http://tomszilagyi.github.io/2016/01/CL-bitwise-Rosettacode)
+
+
+# Before you go
+
+![Unmatched](https://github.com/suterr252/skippy/blob/master/img/unmatched.png)
