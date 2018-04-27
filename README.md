@@ -26,13 +26,12 @@ Here is a visual overview of our route
 We pass this along to the [Google directions API](https://developers.google.com/maps/documentation/directions/) which gives us, among other things, a series of (encoded) polylines for each leg of the trip (remember, this is a Lisp - a LISt Processing Language - so we'll be abstracting our data as lists):
 
 ``` common-lisp
-(;; polyline 1
- "mateFrbjjVUqDi@gIk@mIg@kIASg@uHg@uH?Q[sEOuB"
- ;; polyline 2
+;; Each string represents a polyline
+("mateFrbjjVUqDi@gIk@mIg@kIASg@uHg@uH?Q[sEOuB"
  "_jteFb_hjVnDa@nDc@h@I")
 ```
 
-But we're using an arcane, secret language for which there aren't many community sponsored libraries available, thus we will be making our own implementation of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/decode-polyline.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
+But we're using an old language for which there isn't a large open source community sponsoring libraries for current APIs. Thus, we will be implementing our version of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/decode-polyline.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
 
 
 ![First Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline1.png) ![Second Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline2.png)
@@ -40,7 +39,7 @@ But we're using an arcane, secret language for which there aren't many community
 
 
 Or in tabular form, here:
-``` common-lisp1
+``` common-lisp
 ((37.791107 -122.44537)
  ;; Each nested list represents a lat:long pair
  (37.791218 -122.44449)
@@ -54,11 +53,11 @@ Or in tabular form, here:
 ```
 
 
-While less convenient, this is neat because it means there's plenty of low hanging fruit for which one can make open source contributions. I intend to submit mine to the [QuickLisp](https://www.quicklisp.org/beta/) library manager (analogous to node's NPM) so others can use it.
+While less convenient, this is neat because it means there's plenty of low hanging fruit for which one can make open source contributions. I intend to submit mine to the [QuickLisp](https://www.quicklisp.org/beta/) library manager (analogous to node's NPM) so others can use it (it takes about two weeks for contributions to be properly vetted).
 
 
 
-To these polylines, we will add a heading (bearing, or direction) to each location. The formula for doing so can be found [here](https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points#answer-18738281):
+To these polylines, we will add a camera direction (bearing, or heading) for each location. The formula for doing so can be found [here](https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points#answer-18738281):
 
 ![Vector Components](https://github.com/suterr252/skippy/blob/master/img/directions-added.jpg)
 
