@@ -9,6 +9,9 @@
 (defun replace-spaces-with-pluses (string)
   (format nil "~{~A~^+~}" (cl-utilities:split-sequence #\Space string)))
 
+(defun replace-pluses-with-spaces (string)
+  (format nil "~{~A~^ ~}" (cl-utilities:split-sequence #\+ string)))
+
 (defun get-directions-api-response (origin destination)
   (get-directions directions-base-url origin destination))
 

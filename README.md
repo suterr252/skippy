@@ -130,7 +130,9 @@ We can queue up jobs via the following
    "329 W State St, West Lafayette, IN 47906"))
 ```
 
-..or really any two reasonably close addresses. With just a tiny bit more time we'd have been able to connect Twilio in order to be able to enqueue routes via text and optionally list all the route GIFs which one has created.
+..or really any two reasonably close addresses.
+
+Another way to queue up a job is to text the directions which will be handled by a Common Lisp server that interacts with the Twilio. In response to your directions, you will receive a link to your generated GIF.
 
 
 # Credits:

@@ -14,6 +14,7 @@
                #:clack
                #:drakma
                #:flexi-streams
+               #:cl-ppcre
                #:hunchentoot
                #:optima
                #:postmodern
