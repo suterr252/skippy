@@ -15,7 +15,7 @@ This project aims to automate the experience of stepping through a route in Goog
 
 # What's the project do?
 
-Let's demonstrate with an example route of `3065 Jackson St San Francisco, CA 94115` to `2261 Fillmore St San Francisco, CA 94115`. That is, we will find the walking directions from the first locale to the second.
+Let's demonstrate with an example route that takes the walking directions from `3065 Jackson St San Francisco, CA 94115` to `2261 Fillmore St San Francisco, CA 94115`.
 
 
 Here is a visual overview of our route
@@ -31,7 +31,7 @@ We pass this along to the [Google directions API](https://developers.google.com/
  "_jteFb_hjVnDa@nDc@h@I")
 ```
 
-But we're using an old language for which there isn't a large open source community sponsoring libraries for current APIs. Thus, we will be implementing our version of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/decode-polyline.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
+But we're using an old language, which doesn't have the most active open source community today. That is to say, there will not generally be client libraries for interacting with many services that are popular today. Thus, we will be implementing our version of [Google's Encoded Polyline Algorithm Format](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be found in the source file `/src/polyline-decoder.lisp`. The output of decoding is a series of latitude and longitude lines, as plotted here:
 
 
 ![First Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline1.png) ![Second Polyline](https://github.com/suterr252/skippy/blob/master/img/polyline2.png)
@@ -53,11 +53,11 @@ Or in tabular form, here:
 ```
 
 
-While less convenient, this is neat because it means there's plenty of low hanging fruit for which one can make open source contributions. I intend to submit mine to the [QuickLisp](https://www.quicklisp.org/beta/) library manager (analogous to node's NPM) so others can use it (it takes about two weeks for contributions to be properly vetted).
+While potentially less convenient, this is a neat because it is a great opportunity to make open source contributions. And who knows, there are even folks out there who think will make a comeback one day. I intend to submit mine to the [QuickLisp](https://www.quicklisp.org/beta/) library manager (analogous to node's NPM) so others can use it (it takes about two weeks for contributions to be properly vetted).
 
 
 
-To these polylines, we will add a camera direction (bearing, or heading) for each location. The formula for doing so can be found [here](https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points#answer-18738281):
+Okay, now back to our encoded polylines. We need to add a camera direction (bearing, or heading) for each location to ensure the proper line of sight. A formula for doing so can be found [here](https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points#answer-18738281), whereby we try to have each frame aimed towards the subsequent frame:
 
 ![Vector Components](https://github.com/suterr252/skippy/blob/master/img/directions-added.jpg)
 
@@ -77,11 +77,9 @@ Or, again, in tabular form:
 
 
 
-We will there go through and download an image for each latitude:longitude:heading tuple from the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/).
+We will there go through and request an image for each latitude:longitude:heading tuple from the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/) and rely on [ImageMagick](https://www.imagemagick.org/script/index.php) to process the downloaded images and then create a GIF.
 
-From here we will rely on [ImageMagick](https://www.imagemagick.org/script/index.php) to `"to create, edit, compose, or convert bitmap images"` (process these images and then create a GIF).
-
-From there, we will send our generated gif to Amazon's [S3](https://aws.amazon.com/s3/) for storage with a url of `https://s3.amazonaws.com/skippy-cs252/<filename>.gif` where the filename is formed via the input directions. For the example above, this would be [https://s3.amazonaws.com/skippy-cs252/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif](https://s3.amazonaws.com/skippy-cs252/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif).
+From there, we will send our built GIF to [Amazon S3](https://aws.amazon.com/s3/) for storage with a url of `https://s3.amazonaws.com/skippy-cs252/<filename>.gif` where the filename is formed via the input directions. For the current example, this would be [https://s3.amazonaws.com/skippy-cs252/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif](https://s3.amazonaws.com/skippy-cs252/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif).
 
 ![Final GIF](https://github.com/suterr252/skippy/blob/master/img/3065JacksonStSanFranciscoCA94115to2261FillmoreStSanFranciscoCA94115.gif)
 
@@ -91,7 +89,7 @@ From there, we will send our generated gif to Amazon's [S3](https://aws.amazon.c
 ## run redis for background job processing:
 $ psychiq --host localhost --port 6379 --system skippy
 
-Note: The background worker enables us to queue up many jobs, in order that we can process them all in a non-blocking, asynchronous manner. While this is currently working, there is not currently a web interface with which to queue up jobs, so I have been adding them locally rom my machine.
+Note: The background worker enables us to queue up many jobs in order that we can process them all in a non-blocking, asynchronous manner. Jobs (routes to Skippy-ify) can be added by texting from one address to another to the number provided by Twilio (that can be found in the class Google Docs).
 
 ## Queueing up jobs
 
@@ -111,7 +109,7 @@ Using our worker:
 
 ```
 
-We can queue up jobs via the following
+We can queue up jobs locally via the following
 
 ``` common-lisp
 (psy:enqueue
@@ -132,7 +130,13 @@ We can queue up jobs via the following
 
 ..or really any two reasonably close addresses.
 
-Another way to queue up a job is to text the directions which will be handled by a Common Lisp server that interacts with the Twilio. In response to your directions, you will receive a link to your generated GIF.
+Alternatively we can queue up a job by texting the directions which will be handled by a Common Lisp server that interacts with the [Twilio Webhooks](https://www.twilio.com/docs/sms/tutorials/how-to-receive-and-reply-python). In response to your directions, you receive a link to your newly generated GIF.
+
+
+Here's an output:
+
+
+![Example Twilio Output](https://github.com/suterr252/skippy/img/twilio-res)
 
 
 # Credits:
