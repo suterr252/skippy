@@ -141,7 +141,7 @@ Here's an output:
 
 ## Video
 
-[![Thumbnail from Video](https://img.youtube.com/watch?v=SEW1d1HDU8I&feature=youtu.be/0.jpg)](https://www.youtube.com/watch?v=SEW1d1HDU8I&feature=youtu.be)
+[Quick YouTube Demo](https://www.youtube.com/watch?v=SEW1d1HDU8I&feature=youtu.be)
 
 
 # Credits:
