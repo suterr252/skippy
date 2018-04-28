@@ -136,8 +136,7 @@ Alternatively we can queue up a job by texting the directions which will be hand
 Here's an output:
 
 
-![Example Twilio Output](https://github.com/suterr252/skippy/img/twilio-res)
-
+![Example Twilio Output](https://github.com/suterr252/skippy/blob/master/img/twilio-res.jpg)
 
 # Credits:
 
