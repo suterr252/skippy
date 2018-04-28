@@ -138,6 +138,12 @@ Here's an output:
 
 ![Example Twilio Output](https://github.com/suterr252/skippy/blob/master/img/twilio-res.jpg)
 
+
+## Video
+
+[![Thumbnail from Video](https://img.youtube.com/watch?v=SEW1d1HDU8I&feature=youtu.be/0.jpg)](https://www.youtube.com/watch?v=SEW1d1HDU8I&feature=youtu.be)
+
+
 # Credits:
 
 ## Libraries used:
